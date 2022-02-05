@@ -1,39 +1,10 @@
 const roll = require("../src/index");
 
-afterEach(() => {
-	jest.spyOn(Math, "random").mockRestore();
-});
+beforeEach(() => jest.spyOn(Math, "random").mockReturnValue(0.49));
+afterEach(() => jest.spyOn(Math, "random").mockRestore());
 
-describe("basic funciontality", () => {
-	describe("roll() returns an object with the correct keys and values", () => {
-		test("roll() interprets Math.random() results correctly, given a 4-sided dice", () => {
-			jest.spyOn(Math, "random").mockReturnValue(0.000001);
-			expect(roll("1d4").total).toBe(1);
-			jest.spyOn(Math, "random").mockReturnValue(0.25);
-			expect(roll("1d4").total).toBe(2);
-			jest.spyOn(Math, "random").mockReturnValue(0.5);
-			expect(roll("1d4").total).toBe(3);
-			jest.spyOn(Math, "random").mockReturnValue(0.75);
-			expect(roll("1d4").total).toBe(4);
-			jest.spyOn(Math, "random").mockReturnValue(0.9999999);
-			expect(roll("1d4").total).toBe(4);
-		});
-		test("roll() interprets Math.random() results correctly, given a 6-sided dice", () => {
-			jest.spyOn(Math, "random").mockReturnValue(0.000001);
-			expect(roll("1d6").total).toBe(1);
-			jest.spyOn(Math, "random").mockReturnValue(0.17);
-			expect(roll("1d6").total).toBe(2);
-			jest.spyOn(Math, "random").mockReturnValue(0.34);
-			expect(roll("1d6").total).toBe(3);
-			jest.spyOn(Math, "random").mockReturnValue(0.5);
-			expect(roll("1d6").total).toBe(4);
-			jest.spyOn(Math, "random").mockReturnValue(0.67);
-			expect(roll("1d6").total).toBe(5);
-			jest.spyOn(Math, "random").mockReturnValue(0.84);
-			expect(roll("1d6").total).toBe(6);
-			jest.spyOn(Math, "random").mockReturnValue(0.9999999);
-			expect(roll("1d6").total).toBe(6);
-		});
+describe("roll() unmodified rolls with a single type of dice", () => {
+	describe("returns an object with the correct keys and values", () => {
 		test("roll key's value is the argument given", () => {
 			expect(roll("1d6").roll).toBe("1d6");
 			expect(roll("2d6").roll).toBe("2d6");
@@ -49,32 +20,129 @@ describe("basic funciontality", () => {
 			expect(roll("3d6").total).toBe(18);
 		});
 		test("faces key has correct value", () => {
-			function getAscendingNumbers() {
-				let result = 0;
-				return () => {
-                    result += 0.16;
-                    return result;
-                };
-			}
-			jest.spyOn(Math, "random").mockImplementation(getAscendingNumbers());
-			expect(roll("3d6").faces).toEqual([1, 2, 3]);
+			expect(roll("3d6").faces).toEqual([3, 3, 3]);
 		});
 	});
-	describe("Invoke roll() for any number of dice with N sides", () => {
-		// returns the correct string for roll key
-		// returns the correct faces, checked by mocking Math.random()
-		// returns the correct total, checked by mocking Math.random()
+	describe("roll() relies on Math.random() for fair and even probabilities", () => {
+		test("parses Math.random() results correctly, given a 4-sided dice", () => {
+			jest.spyOn(Math, "random").mockReturnValue(0.000001);
+			expect(roll("1d4").total).toBe(1);
+			jest.spyOn(Math, "random").mockReturnValue(0.25);
+			expect(roll("1d4").total).toBe(2);
+			jest.spyOn(Math, "random").mockReturnValue(0.5);
+			expect(roll("1d4").total).toBe(3);
+			jest.spyOn(Math, "random").mockReturnValue(0.75);
+			expect(roll("1d4").total).toBe(4);
+			jest.spyOn(Math, "random").mockReturnValue(0.9999999);
+			expect(roll("1d4").total).toBe(4);
+		});
+		test("parses Math.random() results correctly, given a 6-sided dice", () => {
+			jest.spyOn(Math, "random").mockReturnValue(0.000001);
+			expect(roll("1d6").total).toBe(1);
+			jest.spyOn(Math, "random").mockReturnValue(0.17);
+			expect(roll("1d6").total).toBe(2);
+			jest.spyOn(Math, "random").mockReturnValue(0.34);
+			expect(roll("1d6").total).toBe(3);
+			jest.spyOn(Math, "random").mockReturnValue(0.5);
+			expect(roll("1d6").total).toBe(4);
+			jest.spyOn(Math, "random").mockReturnValue(0.67);
+			expect(roll("1d6").total).toBe(5);
+			jest.spyOn(Math, "random").mockReturnValue(0.84);
+			expect(roll("1d6").total).toBe(6);
+			jest.spyOn(Math, "random").mockReturnValue(0.9999999);
+			expect(roll("1d6").total).toBe(6);
+		});
 	});
-    // invalid argument handling
-	describe("Default behaviours", () => {
+	describe("parses any number of dice with any number of sides", () => {
+		test("total is correct when rolling dice with fewer than 10 sides", () => {
+			expect(roll("2d4").total).toBe(4);
+			expect(roll("2d8").total).toBe(8);
+		});
+		test("total is correct when rolling dice with more than 10 sides", () => {
+			expect(roll("3d10").total).toBe(15);
+			expect(roll("3d100").total).toBe(150);
+		});
+	});
+	describe("default & shorthand behaviours", () => {
 		test("roll() defaults to rolling '1d6'", () => {
-			expect(roll().roll).toBe("1d6");
+			expect(roll()).toMatchObject({
+				roll: "1d6",
+				faces: [3],
+				total: 3
+			});
+		});
+		test("roll(dn) rolls a single dice with 'n' sides", () => {
+			expect(roll("d8")).toMatchObject({
+				roll: "1d8",
+				faces: [4],
+				total: 4
+			});
+		});
+		test("passing '%' is identitcal to passing '1d100'", () => {
+			expect(roll("%")).toMatchObject({
+				roll: "1d100",
+				faces: [50],
+				total: 50
+			});
+		});
+		test("passing 'nd%' is identitcal to passing 'nd100'", () => {
+			expect(roll("1d%")).toMatchObject({
+				roll: "1d100",
+				faces: [50],
+				total: 50
+			});
+			expect(roll("2d%")).toMatchObject({
+				roll: "2d100",
+				faces: [50, 50],
+				total: 100
+			});
+			expect(roll("10d%")).toMatchObject({
+				roll: "10d100",
+				faces: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50],
+				total: 500
+			});
+		});
+		test("roll() ignores whitespace", () => {
+			expect(roll(" 1 d 6 ")).toMatchObject({
+				roll: "1d6",
+				faces: [3],
+				total: 3
+			});
+			expect(roll(" % ")).toMatchObject({
+				roll: "1d100",
+				faces: [50],
+				total: 50
+			});
 		});
 	});
-	// add modifiers to the roll
+	describe("inavlid input handling", () => {
+		test("returns undefined if input isn't valid", () => {
+			expect(roll("1dP")).toBe(undefined);
+			expect(roll("Pd6")).toBe(undefined);
+			expect(roll("Pd%")).toBe(undefined);
+			expect(roll("1d6d")).toBe(undefined);
+			expect(roll("1dd6")).toBe(undefined);
+		});
+	});
+});
+
+describe.only("roll() with simple addtion/subtraction modifiers", () => {
+	test("1d6+1", () => {
+		expect(roll("1d6+1")).toMatchObject({
+			roll: "1d6+1",
+			faces: [4],
+			total: 4
+		});
+	});
+	// 1d6 + 1
+	// 1d6 +1
+	// 1d6+ 1
+	// 1d6 - 1
+	// 1d6 + 1 - 2
 });
 
 // mix different types of dice together
+// add modifiers to the roll
 // drop/keep highest/lost N
 // exloding dice
 
