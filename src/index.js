@@ -1,37 +1,65 @@
-let result;
-
-function roll(dice = "1d6") {
-	result = { roll: dice, faces: [], total: 0 };
-
-	let numOfDice;
-	let sidesOfDice;
-
+function roll(inputRoll = "1d6") {
 	// Parse input
-	dice = dice.replace(/\s/g, "");
-	dice = dice.replace("%", "100");
-	if (dice.match(/^d/)) dice = `1${dice}`;
-	if (dice.match(/^[0-9]+$/)) dice = `1d${dice}`;
+	const rollElements = parseRoll(inputRoll);
+	if (!rollElements) return;
+	const { roll, dice, modifier } = rollElements;
 
-	if (dice.match(/^[0-9]+d[0-9]+$/i)) {
-		// unmodified roll with 1 type of dice
-		dice = dice.split("d");
-		numOfDice = parseInt(dice[0] || 1);
-		sidesOfDice = parseInt(dice[1]);
-		result.roll = `${dice[0] ? dice[0] : 1}d${dice[1]}`;
+	const result = getResult(dice);
+	result.roll = roll;
+	result.total += parseInt(modifier) || 0;
+	return result;
+}
+
+function parseRoll(roll) {
+	// Tidy up roll
+	roll = tidy(roll);
+
+	let dice = roll;
+	let modifier = 0;
+
+	// Vet format
+	if (roll.match(/^[0-9]+d[0-9]+$/)) {
+		// ndn
+		return { roll, dice, modifier };
+	} else if (roll.match(/^[0-9]+d[0-9]+((\+|\-)[0-9]+)+$/)) {
+		// ndn +/- n +/- n...
+		const operatorIndex = roll.search(/[\+|\-]/);
+		dice = roll.substring(0, operatorIndex);
+		modifier = roll.substring(operatorIndex);
+
+		return { roll, dice, modifier };
 	} else return;
+}
+
+function tidy(roll) {
+	roll = roll.toLowerCase();
+	roll = roll.replace(/\s/g, "");
+	roll = roll.replace("%", "100");
+
+	if (roll.match(/^d[0-9]+$/)) roll = `1${roll}`;
+	if (roll.match(/^[0-9]+$/)) roll = `1d${roll}`;
+	return roll;
+}
+
+function getResult(dice) {
+	const result = { roll: dice, faces: [], total: 0 };
+
+	// Do a simple roll
+	dice = dice.split("d");
+	const numOfDice = parseInt(dice[0]);
+	const sidesOfDice = parseInt(dice[1]);
 
 	// Do roll
-	const faces = unmodifiedRoll(numOfDice, sidesOfDice);
+	const faces = getFaces(numOfDice, sidesOfDice);
 	faces.forEach((face) => {
 		result.faces.push(face);
 		result.total += face;
 	});
 
-	// Return result
 	return result;
 }
 
-function unmodifiedRoll(numOfDice, numOfSides) {
+function getFaces(numOfDice, numOfSides) {
 	const result = [];
 
 	for (let i = 0; i < numOfDice; i++) {

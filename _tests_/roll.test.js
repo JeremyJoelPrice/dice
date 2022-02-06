@@ -1,6 +1,6 @@
 const roll = require("../src/index");
 
-beforeEach(() => jest.spyOn(Math, "random").mockReturnValue(0.49));
+beforeEach(() => jest.spyOn(Math, "random").mockReturnValue(0.49999));
 afterEach(() => jest.spyOn(Math, "random").mockRestore());
 
 describe("roll() unmodified rolls with a single type of dice", () => {
@@ -63,58 +63,60 @@ describe("roll() unmodified rolls with a single type of dice", () => {
 			expect(roll("3d100").total).toBe(150);
 		});
 	});
-	describe("inavlid input handling", () => {
-		test("returns undefined if input isn't valid", () => {
-			expect(roll("1dP")).toBe(undefined);
-			expect(roll("Pd6")).toBe(undefined);
-			expect(roll("Pd%")).toBe(undefined);
-			expect(roll("1d6d")).toBe(undefined);
-			expect(roll("1dd6")).toBe(undefined);
-		});
-	});
 });
 
 describe("roll() single type of dice with simple addtion/subtraction modifiers", () => {
-	test("2d6+1", () => {
-		expect(roll("2d6+1")).toMatchObject({
-			roll: "2d6+1",
-			faces: [3, 3],
-			total: 7
+	describe("single modifier", () => {
+		test("2d6+1", () => {
+			expect(roll("2d6+1")).toMatchObject({
+				roll: "2d6+1",
+				faces: [3, 3],
+				total: 7
+			});
+		});
+		test("2d6+10", () => {
+			expect(roll("2d6+10")).toMatchObject({
+				roll: "2d6+10",
+				faces: [3, 3],
+				total: 16
+			});
+		});
+		test("2d6-1", () => {
+			expect(roll("2d6-1")).toMatchObject({
+				roll: "2d6-1",
+				faces: [3, 3],
+				total: 5
+			});
+		});
+		test("3d6-10", () => {
+			expect(roll("3d6-10")).toMatchObject({
+				roll: "3d6-10",
+				faces: [3, 3, 3],
+				total: -1
+			});
 		});
 	});
-	test("2d6+10", () => {
-		expect(roll("2d6+10")).toMatchObject({
-			roll: "2d6+10",
-			faces: [3, 3],
-			total: 16
+	describe("multiple modifiers", () => {
+		test.skip("3d6+1-20", () => {
+			expect(roll("3d6+1-20")).toMatchObject({
+				roll: "3d6+1-20",
+				faces: [3, 3, 3],
+				total: -10
+			});
 		});
-	});
-	test("2d6-1", () => {
-		expect(roll("2d6-1")).toMatchObject({
-			roll: "2d6-1",
-			faces: [3, 3],
-			total: 5
+		test.skip("3d6+1-2+3-4+5-6", () => {
+			expect(roll("3d6+1-2+3-4+5-6")).toMatchObject({
+				roll: "3d6+1-2+3-4+5-6",
+				faces: [3, 3, 3],
+				total: 6
+			});
 		});
-	});
-	test("3d6-10", () => {
-		expect(roll("3d6-10")).toMatchObject({
-			roll: "3d6-10",
-			faces: [3, 3, 3],
-			total: -1
-		});
-	});
-	test("3d6+1-20", () => {
-		expect(roll("3d6+1-20")).toMatchObject({
-			roll: "3d6+1-20",
-			faces: [3, 3, 3],
-			total: -10
-		});
-	});
-	test("3d6+ -1", () => {
-		expect(roll("3d6+ -1")).toMatchObject({
-			roll: "3d6+ -1",
-			faces: [3, 3, 3],
-			total: 8
+		test.skip("3d6+ -1", () => {
+			expect(roll("3d6+ -1")).toMatchObject({
+				roll: "3d6+ -1",
+				faces: [3, 3, 3],
+				total: 8
+			});
 		});
 	});
 });
@@ -176,6 +178,16 @@ describe("default & shorthand behaviours", () => {
 			roll: "1d100",
 			faces: [50],
 			total: 50
+		});
+	});
+	describe("inavlid input handling", () => {
+		test("returns undefined if input isn't valid", () => {
+			expect(roll("1dP")).toBe(undefined);
+			expect(roll("Pd6")).toBe(undefined);
+			expect(roll("Pd%")).toBe(undefined);
+			expect(roll("1d6d")).toBe(undefined);
+			expect(roll("1dd6")).toBe(undefined);
+			expect(roll("1+2")).toBe(undefined);
 		});
 	});
 });
