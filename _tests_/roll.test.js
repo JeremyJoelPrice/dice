@@ -63,58 +63,6 @@ describe("roll() unmodified rolls with a single type of dice", () => {
 			expect(roll("3d100").total).toBe(150);
 		});
 	});
-	describe("default & shorthand behaviours", () => {
-		test("roll() defaults to rolling '1d6'", () => {
-			expect(roll()).toMatchObject({
-				roll: "1d6",
-				faces: [3],
-				total: 3
-			});
-		});
-		test("roll(dn) rolls a single dice with 'n' sides", () => {
-			expect(roll("d8")).toMatchObject({
-				roll: "1d8",
-				faces: [4],
-				total: 4
-			});
-		});
-		test("passing '%' is identitcal to passing '1d100'", () => {
-			expect(roll("%")).toMatchObject({
-				roll: "1d100",
-				faces: [50],
-				total: 50
-			});
-		});
-		test("passing 'nd%' is identitcal to passing 'nd100'", () => {
-			expect(roll("1d%")).toMatchObject({
-				roll: "1d100",
-				faces: [50],
-				total: 50
-			});
-			expect(roll("2d%")).toMatchObject({
-				roll: "2d100",
-				faces: [50, 50],
-				total: 100
-			});
-			expect(roll("10d%")).toMatchObject({
-				roll: "10d100",
-				faces: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50],
-				total: 500
-			});
-		});
-		test("roll() ignores whitespace", () => {
-			expect(roll(" 1 d 6 ")).toMatchObject({
-				roll: "1d6",
-				faces: [3],
-				total: 3
-			});
-			expect(roll(" % ")).toMatchObject({
-				roll: "1d100",
-				faces: [50],
-				total: 50
-			});
-		});
-	});
 	describe("inavlid input handling", () => {
 		test("returns undefined if input isn't valid", () => {
 			expect(roll("1dP")).toBe(undefined);
@@ -126,26 +74,108 @@ describe("roll() unmodified rolls with a single type of dice", () => {
 	});
 });
 
-describe.only("roll() with simple addtion/subtraction modifiers", () => {
-	test("1d6+1", () => {
-		expect(roll("1d6+1")).toMatchObject({
-			roll: "1d6+1",
-			faces: [4],
-			total: 4
+describe("roll() single type of dice with simple addtion/subtraction modifiers", () => {
+	test("2d6+1", () => {
+		expect(roll("2d6+1")).toMatchObject({
+			roll: "2d6+1",
+			faces: [3, 3],
+			total: 7
 		});
 	});
-	// 1d6 + 1
-	// 1d6 +1
-	// 1d6+ 1
-	// 1d6 - 1
-	// 1d6 + 1 - 2
+	test("2d6+10", () => {
+		expect(roll("2d6+10")).toMatchObject({
+			roll: "2d6+10",
+			faces: [3, 3],
+			total: 16
+		});
+	});
+	test("2d6-1", () => {
+		expect(roll("2d6-1")).toMatchObject({
+			roll: "2d6-1",
+			faces: [3, 3],
+			total: 5
+		});
+	});
+	test("3d6-10", () => {
+		expect(roll("3d6-10")).toMatchObject({
+			roll: "3d6-10",
+			faces: [3, 3, 3],
+			total: -1
+		});
+	});
+	test("3d6+1-20", () => {
+		expect(roll("3d6+1-20")).toMatchObject({
+			roll: "3d6+1-20",
+			faces: [3, 3, 3],
+			total: -10
+		});
+	});
+	test("3d6+ -1", () => {
+		expect(roll("3d6+ -1")).toMatchObject({
+			roll: "3d6+ -1",
+			faces: [3, 3, 3],
+			total: 8
+		});
+	});
 });
 
-// mix different types of dice together
-// add modifiers to the roll
 // drop/keep highest/lost N
 // exloding dice
+// mix different types of dice together
 
 // advanced functionality
 // remember a roll for later
 // reroll the previous roll
+
+describe("default & shorthand behaviours", () => {
+	test("roll() defaults to rolling '1d6'", () => {
+		expect(roll()).toMatchObject({
+			roll: "1d6",
+			faces: [3],
+			total: 3
+		});
+	});
+	test("roll(dn) rolls a single dice with 'n' sides", () => {
+		expect(roll("d8")).toMatchObject({
+			roll: "1d8",
+			faces: [4],
+			total: 4
+		});
+	});
+	test("passing '%' is identitcal to passing '1d100'", () => {
+		expect(roll("%")).toMatchObject({
+			roll: "1d100",
+			faces: [50],
+			total: 50
+		});
+	});
+	test("passing 'nd%' is identitcal to passing 'nd100'", () => {
+		expect(roll("1d%")).toMatchObject({
+			roll: "1d100",
+			faces: [50],
+			total: 50
+		});
+		expect(roll("2d%")).toMatchObject({
+			roll: "2d100",
+			faces: [50, 50],
+			total: 100
+		});
+		expect(roll("10d%")).toMatchObject({
+			roll: "10d100",
+			faces: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50],
+			total: 500
+		});
+	});
+	test("roll() ignores whitespace", () => {
+		expect(roll(" 1 d 6 ")).toMatchObject({
+			roll: "1d6",
+			faces: [3],
+			total: 3
+		});
+		expect(roll(" % ")).toMatchObject({
+			roll: "1d100",
+			faces: [50],
+			total: 50
+		});
+	});
+});
