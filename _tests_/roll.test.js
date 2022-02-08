@@ -4,7 +4,7 @@ beforeEach(() => jest.spyOn(Math, "random").mockReturnValue(0.49999));
 afterEach(() => jest.spyOn(Math, "random").mockRestore());
 
 describe("roll() unmodified rolls with a single type of dice", () => {
-	describe("returns an object with the correct keys and values", () => {
+	describe.only("returns an object with the correct keys and values", () => {
 		test("roll key's value is the argument given", () => {
 			expect(roll("1d6").roll).toBe("1d6");
 			expect(roll("2d6").roll).toBe("2d6");
@@ -97,25 +97,18 @@ describe("roll() single type of dice with simple addtion/subtraction modifiers",
 		});
 	});
 	describe("multiple modifiers", () => {
-		test.skip("3d6+1-20", () => {
+		test("3d6+1-20", () => {
 			expect(roll("3d6+1-20")).toMatchObject({
 				roll: "3d6+1-20",
 				faces: [3, 3, 3],
 				total: -10
 			});
 		});
-		test.skip("3d6+1-2+3-4+5-6", () => {
+		test("3d6+1-2+3-4+5-6", () => {
 			expect(roll("3d6+1-2+3-4+5-6")).toMatchObject({
 				roll: "3d6+1-2+3-4+5-6",
 				faces: [3, 3, 3],
 				total: 6
-			});
-		});
-		test.skip("3d6+ -1", () => {
-			expect(roll("3d6+ -1")).toMatchObject({
-				roll: "3d6+ -1",
-				faces: [3, 3, 3],
-				total: 8
 			});
 		});
 	});
@@ -188,6 +181,7 @@ describe("default & shorthand behaviours", () => {
 			expect(roll("1d6d")).toBe(undefined);
 			expect(roll("1dd6")).toBe(undefined);
 			expect(roll("1+2")).toBe(undefined);
+			expect(roll("3d6+-1")).toBe(undefined);
 		});
 	});
 });

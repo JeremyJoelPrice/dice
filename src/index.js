@@ -1,34 +1,25 @@
-function roll(inputRoll = "1d6") {
-	// Parse input
-	const rollElements = parseRoll(inputRoll);
-	if (!rollElements) return;
-	const { roll, dice, modifier } = rollElements;
+function roll(roll = "1d6") {
+	try {
+		let [dice, modifiers] = extractRollElements(roll);
 
-	const result = getResult(dice);
-	result.roll = roll;
-	result.total += parseInt(modifier) || 0;
-	return result;
+		// Handle dice
+		const faces = getFaces(...dice.split("d"));
+
+		// Handle modifiers
+		modifiers = splitModifiers(modifiers);
+
+		// Compute and return
+		const total = getTotal(faces, modifiers);
+		return { roll, faces, total };
+	} catch (error) {
+		return;
+	}
 }
 
-function parseRoll(roll) {
-	// Tidy up roll
+function extractRollElements(roll) {
 	roll = tidy(roll);
-
-	let dice = roll;
-	let modifier = 0;
-
-	// Vet format
-	if (roll.match(/^[0-9]+d[0-9]+$/)) {
-		// ndn
-		return { roll, dice, modifier };
-	} else if (roll.match(/^[0-9]+d[0-9]+((\+|\-)[0-9]+)+$/)) {
-		// ndn +/- n +/- n...
-		const operatorIndex = roll.search(/[\+|\-]/);
-		dice = roll.substring(0, operatorIndex);
-		modifier = roll.substring(operatorIndex);
-
-		return { roll, dice, modifier };
-	} else return;
+	const i = roll.search(/\+|\-/);
+	return [roll.substring(0, i), roll.substring(i)];
 }
 
 function tidy(roll) {
@@ -41,24 +32,6 @@ function tidy(roll) {
 	return roll;
 }
 
-function getResult(dice) {
-	const result = { roll: dice, faces: [], total: 0 };
-
-	// Do a simple roll
-	dice = dice.split("d");
-	const numOfDice = parseInt(dice[0]);
-	const sidesOfDice = parseInt(dice[1]);
-
-	// Do roll
-	const faces = getFaces(numOfDice, sidesOfDice);
-	faces.forEach((face) => {
-		result.faces.push(face);
-		result.total += face;
-	});
-
-	return result;
-}
-
 function getFaces(numOfDice, numOfSides) {
 	const result = [];
 
@@ -69,4 +42,62 @@ function getFaces(numOfDice, numOfSides) {
 	return result;
 }
 
+function splitModifiers(modifiers) {
+	const result = [];
+
+	function extractModifiers(modStr) {
+		for (let i = 1; i < modStr.length; i++) {
+			if (modStr[i] === "+" || modStr[i] === "-") {
+				result.push(modStr.substring(0, i));
+				return extractModifiers(modStr.substring(i));
+			}
+		}
+		result.push(modStr);
+		return;
+	}
+
+	extractModifiers(modifiers);
+
+	return result;
+}
+
+function getTotal(faces, modifiers) {
+	let total = 0;
+	faces.forEach((face) => (total += face));
+	modifiers.forEach((modifier) => (total += Number(modifier)));
+	return total;
+}
+
+// function getRollElements(roll) {
+// 	// Vet format
+// 	if (roll.match(/^[0-9]+d[0-9]+$/)) {
+// 		// ndn
+// 		return { roll, dice, modifier };
+// 	} else if (roll.match(/^[0-9]+d[0-9]+((\+|\-)[0-9]+)+$/)) {
+// 		// ndn +/- n +/- n...
+// 		const operatorIndex = roll.search(/[\+|\-]/);
+// 		dice = roll.substring(0, operatorIndex);
+// 		modifier = roll.substring(operatorIndex);
+
+// 		return { roll, dice, modifier };
+// 	} else return;
+// }
+
+// function getDiceResult(dice) {
+// 	const result = { roll: dice, faces: [], total: 0 };
+
+// 	// Parse dice
+// 	dice = dice.split("d");
+// 	const numOfDice = parseInt(dice[0]);
+// 	const sidesOfDice = parseInt(dice[1]);
+
+// 	// Do roll
+// 	const faces = getDiceFaces(numOfDice, sidesOfDice);
+// 	faces.forEach((face) => {
+// 		result.faces.push(face);
+// 		result.total += face;
+// 	});
+
+// 	return result;
+// }
 module.exports = roll;
