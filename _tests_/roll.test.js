@@ -116,8 +116,71 @@ describe("Basic functionality", () => {
 });
 
 describe("Advanced functionality", () => {
+	describe("roll() exploding dice", () => {
+		describe("Accepts `explode` keyword, and explodes on a maximum value roll", () => {
+			test("1d4 explodes", () => {
+				const results = [0.5, 0.9, 0.5, 0.5];
+				let index = 0;
+				jest.spyOn(Math, "random").mockImplementation(() => results[index++]);
+				expect(roll("explode 1d4")).toMatchObject({
+					roll: "explode 1d4",
+					faces: [3],
+					total: 3
+				});
+				expect(roll("explode 1d4")).toMatchObject({
+					roll: "explode 1d4",
+					faces: [4, 3],
+					total: 7
+				});
+				expect(roll("explode 1d4")).toMatchObject({
+					roll: "explode 1d4",
+					faces: [3],
+					total: 3
+				});
+			});
+			test("1d6 explodes", () => {
+				const results = [0.49, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.82, 0.9, 0.01];
+				let index = 0;
+				jest.spyOn(Math, "random").mockImplementation(() => results[index++]);
+				expect(roll("explode 1d6")).toMatchObject({
+					roll: "explode 1d6",
+					faces: [3],
+					total: 3
+				});
+				expect(roll("explode 1d6")).toMatchObject({
+					roll: "explode 1d6",
+					faces: [6, 6, 6, 6, 6, 6, 5],
+					total: 41
+				});
+				expect(roll("explode 1d6")).toMatchObject({
+					roll: "explode 1d6",
+					faces: [6, 1],
+					total: 7
+				});
+			});
+			test("2d8 explodes", () => {
+				const results = [0.02, 0.6, 0.9, 0.01, 0.01, 0.8, 0.9, 0.9, 0.01];
+				let index = 0;
+				jest.spyOn(Math, "random").mockImplementation(() => results[index++]);
+				expect(roll("explode 2d8")).toMatchObject({
+					roll: "explode 2d8",
+					faces: [1, 5],
+					total: 6
+				});
+				expect(roll("explode 2d8")).toMatchObject({
+					roll: "explode 2d8",
+					faces: [8, 1, 1],
+					total: 10
+				});
+				expect(roll("explode 2d8")).toMatchObject({
+					roll: "explode 2d8",
+					faces: [7, 8, 8, 1],
+					total: 24
+				});
+			});
+		});
+	});
 	// drop/keep highest/lost N
-	// exloding dice
 	// mix different types of dice together
 });
 
