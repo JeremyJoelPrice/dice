@@ -4,7 +4,7 @@ beforeEach(() => jest.spyOn(Math, "random").mockReturnValue(0.49999));
 afterEach(() => jest.spyOn(Math, "random").mockRestore());
 
 describe("roll() unmodified rolls with a single type of dice", () => {
-	describe.only("returns an object with the correct keys and values", () => {
+	describe("returns an object with the correct keys and values", () => {
 		test("roll key's value is the argument given", () => {
 			expect(roll("1d6").roll).toBe("1d6");
 			expect(roll("2d6").roll).toBe("2d6");
@@ -173,15 +173,15 @@ describe("default & shorthand behaviours", () => {
 			total: 50
 		});
 	});
-	describe("inavlid input handling", () => {
-		test("returns undefined if input isn't valid", () => {
-			expect(roll("1dP")).toBe(undefined);
-			expect(roll("Pd6")).toBe(undefined);
-			expect(roll("Pd%")).toBe(undefined);
-			expect(roll("1d6d")).toBe(undefined);
-			expect(roll("1dd6")).toBe(undefined);
-			expect(roll("1+2")).toBe(undefined);
-			expect(roll("3d6+-1")).toBe(undefined);
-		});
+});
+describe("inavlid input handling", () => {
+	test("returns undefined if input isn't valid", () => {
+		expect(roll("1dP")).toBe(undefined);
+		expect(roll("Pd6")).toBe(undefined);
+		expect(roll("Pd%")).toBe(undefined);
+		expect(roll("1d6d")).toBe(undefined);
+		expect(roll("1dd6")).toBe(undefined);
+		expect(roll("1+2")).toBe(undefined);
+		expect(roll("3d6+-1")).toBe(undefined);
 	});
 });

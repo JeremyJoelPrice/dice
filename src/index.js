@@ -1,6 +1,9 @@
 function roll(roll = "1d6") {
 	try {
-		let [dice, modifiers] = extractRollElements(roll);
+		roll = tidy(roll);
+		if (roll === undefined) return;
+
+		let [dice, modifiers = []] = extractRollElements(roll);
 
 		// Handle dice
 		const faces = getFaces(...dice.split("d"));
@@ -10,16 +13,11 @@ function roll(roll = "1d6") {
 
 		// Compute and return
 		const total = getTotal(faces, modifiers);
+
 		return { roll, faces, total };
 	} catch (error) {
 		return;
 	}
-}
-
-function extractRollElements(roll) {
-	roll = tidy(roll);
-	const i = roll.search(/\+|\-/);
-	return [roll.substring(0, i), roll.substring(i)];
 }
 
 function tidy(roll) {
@@ -29,7 +27,25 @@ function tidy(roll) {
 
 	if (roll.match(/^d[0-9]+$/)) roll = `1${roll}`;
 	if (roll.match(/^[0-9]+$/)) roll = `1d${roll}`;
+
+	if (
+		!(
+			roll.match(/^[0-9]+d[0-9]+((\+|\-)[0-9]+)+$/) ||
+			roll.match(/^[0-9]+d[0-9]+$/)
+		)
+	) {
+		return;
+	}
 	return roll;
+}
+
+function extractRollElements(roll) {
+	const i = roll.search(/\+|\-/);
+	if (i > 0) {
+		return [roll.substring(0, i), roll.substring(i)];
+	} else {
+		return [roll];
+	}
 }
 
 function getFaces(numOfDice, numOfSides) {
@@ -43,6 +59,8 @@ function getFaces(numOfDice, numOfSides) {
 }
 
 function splitModifiers(modifiers) {
+	if (!modifiers[0]) return modifiers;
+
 	const result = [];
 
 	function extractModifiers(modStr) {
@@ -70,10 +88,10 @@ function getTotal(faces, modifiers) {
 
 // function getRollElements(roll) {
 // 	// Vet format
-// 	if (roll.match(/^[0-9]+d[0-9]+$/)) {
+// if (roll.match(/^[0-9]+d[0-9]+$/)) {
 // 		// ndn
 // 		return { roll, dice, modifier };
-// 	} else if (roll.match(/^[0-9]+d[0-9]+((\+|\-)[0-9]+)+$/)) {
+// } else if (roll.match(/^[0-9]+d[0-9]+((\+|\-)[0-9]+)+$/)) {
 // 		// ndn +/- n +/- n...
 // 		const operatorIndex = roll.search(/[\+|\-]/);
 // 		dice = roll.substring(0, operatorIndex);
