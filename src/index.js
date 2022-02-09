@@ -1,7 +1,6 @@
-function roll(roll = "1d6") {
+module.exports = function roll(roll = "1d6") {
 	try {
 		roll = tidy(roll);
-		if (roll === undefined) return;
 
 		let [dice, modifiers = []] = extractRollElements(roll);
 
@@ -85,37 +84,3 @@ function getTotal(faces, modifiers) {
 	modifiers.forEach((modifier) => (total += Number(modifier)));
 	return total;
 }
-
-// function getRollElements(roll) {
-// 	// Vet format
-// if (roll.match(/^[0-9]+d[0-9]+$/)) {
-// 		// ndn
-// 		return { roll, dice, modifier };
-// } else if (roll.match(/^[0-9]+d[0-9]+((\+|\-)[0-9]+)+$/)) {
-// 		// ndn +/- n +/- n...
-// 		const operatorIndex = roll.search(/[\+|\-]/);
-// 		dice = roll.substring(0, operatorIndex);
-// 		modifier = roll.substring(operatorIndex);
-
-// 		return { roll, dice, modifier };
-// 	} else return;
-// }
-
-// function getDiceResult(dice) {
-// 	const result = { roll: dice, faces: [], total: 0 };
-
-// 	// Parse dice
-// 	dice = dice.split("d");
-// 	const numOfDice = parseInt(dice[0]);
-// 	const sidesOfDice = parseInt(dice[1]);
-
-// 	// Do roll
-// 	const faces = getDiceFaces(numOfDice, sidesOfDice);
-// 	faces.forEach((face) => {
-// 		result.faces.push(face);
-// 		result.total += face;
-// 	});
-
-// 	return result;
-// }
-module.exports = roll;
