@@ -15,6 +15,7 @@ module.exports = function roll(roll = "1d6") {
 
 		return { roll, faces, total };
 	} catch (error) {
+		console.error(error);
 		return;
 	}
 };
