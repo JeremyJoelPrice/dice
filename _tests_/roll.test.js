@@ -5,25 +5,6 @@ afterEach(() => jest.spyOn(Math, "random").mockRestore());
 
 describe("Basic functionality", () => {
 	describe("roll() unmodified rolls with a single type of dice", () => {
-		describe("returns an object with the correct keys and values", () => {
-			test("roll key's value is the argument given", () => {
-				expect(roll("1d6").roll).toBe("1d6");
-				expect(roll("2d6").roll).toBe("2d6");
-				expect(roll("1d8").roll).toBe("1d8");
-			});
-			test("total key's value is correct", () => {
-				jest.spyOn(Math, "random").mockReturnValue(0.0000001);
-				expect(roll("2d6").total).toBe(2);
-				expect(roll("3d6").total).toBe(3);
-
-				jest.spyOn(Math, "random").mockReturnValue(0.9999999);
-				expect(roll("2d6").total).toBe(12);
-				expect(roll("3d6").total).toBe(18);
-			});
-			test("faces key has correct value", () => {
-				expect(roll("3d6").faces).toEqual([3, 3, 3]);
-			});
-		});
 		describe("roll() relies on Math.random() for fair and even probabilities", () => {
 			test("parses Math.random() results correctly, given a 4-sided dice", () => {
 				jest.spyOn(Math, "random").mockReturnValue(0.000001);
