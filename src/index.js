@@ -31,9 +31,9 @@ function tightenSyntax(roll) {
 	if (
 		roll.match(/^[0-9]+d[0-9]+((\+|\-)[0-9]+)+$/) ||
 		roll.match(/^[0-9]+d[0-9]+$/)
-	)
+	) {
 		return roll;
-	else if (roll.match(/^explode [0-9]+d[0-9]+/)) return roll;
+	} else if (roll.match(/^explode [0-9]+d[0-9]+/)) return roll;
 
 	return;
 }

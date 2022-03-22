@@ -1,4 +1,5 @@
 const roll = require("../src/index");
+const extractRegexFromString = require("../src/regextractor");
 
 beforeEach(() => jest.spyOn(Math, "random").mockReturnValue(0.49999));
 afterEach(() => jest.spyOn(Math, "random").mockRestore());
@@ -229,6 +230,38 @@ describe("Utility functionality", () => {
 			expect(roll("3d6+-1")).toBe(undefined);
 		});
 	});
+	describe("util functions", () => {
+		describe.only("extractRegexFromString", () => {
+			it("removes the pattern from the string, returning both", () => {
+				const string = "applesbananasapples";
+				const { matches, string: newString } = extractRegexFromString(
+					/bananas/,
+					string
+				);
+				expect(matches[0]).toBe("bananas");
+				expect(newString).toBe("applesapples");
+			});
+			it("removes only the first instance of the pattern from the string, returning both", () => {
+				const string = "applesbananasapples";
+				const { matches, string: newString } = extractRegexFromString(
+					/apples/,
+					string
+				);
+				expect(matches[0]).toBe("apples");
+				expect(newString).toBe("bananasapples");
+			});
+			it("returns entire string if no match is found", () => {
+				const string = "applesbananas";
+				const { matches, string: newString } = extractRegexFromString(
+					/cheese/,
+					string
+				);
+				expect(matches).toEqual([]);
+				expect(newString).toBe(string);
+			});
+		});
+	});
+
 	// remember a roll for later
 	// reroll the previous roll
 });
