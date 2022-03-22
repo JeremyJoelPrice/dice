@@ -1,11 +1,11 @@
 module.exports = function roll(roll = "1d6") {
 	try {
-		roll = tidy(roll);
+		roll = tightenSyntax(roll);
 
 		let { dice, explode, modifiers = [] } = extractRollElements(roll);
 
 		// Handle dice
-		const faces = getFaces(dice.split("d"), explode);
+		const faces = getFaces(dice.split("d")[0], dice.split("d")[1], explode);
 
 		// Handle modifiers
 		modifiers = splitModifiers(modifiers);
@@ -15,12 +15,11 @@ module.exports = function roll(roll = "1d6") {
 
 		return { roll, faces, total };
 	} catch (error) {
-		console.error(error);
 		return;
 	}
 };
 
-function tidy(roll) {
+function tightenSyntax(roll) {
 	roll = roll.toLowerCase();
 	roll = roll.replace(/\s/g, "");
 	roll = roll.replace("explode", "explode ");
@@ -58,7 +57,7 @@ function extractRollElements(roll) {
 	}
 }
 
-function getFaces([numOfDice, numOfSides], explode) {
+function getFaces(numOfDice, numOfSides, explode) {
 	const faces = [];
 
 	for (let i = 0; i < numOfDice; i++) {
@@ -73,8 +72,6 @@ function getFaces([numOfDice, numOfSides], explode) {
 }
 
 function splitModifiers(modifiers) {
-	if (!modifiers[0]) return modifiers;
-
 	const modifiersArray = [];
 
 	function extractModifiers(modStr) {
