@@ -238,7 +238,7 @@ describe("Utility functionality", () => {
 					/bananas/,
 					string
 				);
-				expect(matches[0]).toBe("bananas");
+				expect(matches).toEqual(["bananas"]);
 				expect(newString).toBe("applesapples");
 			});
 			it("removes only the first instance of the pattern from the string, returning both", () => {
@@ -247,7 +247,7 @@ describe("Utility functionality", () => {
 					/apples/,
 					string
 				);
-				expect(matches[0]).toBe("apples");
+				expect(matches).toEqual(["apples"]);
 				expect(newString).toBe("bananasapples");
 			});
 			it("returns entire string if no match is found", () => {
