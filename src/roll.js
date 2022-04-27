@@ -1,60 +1,65 @@
 module.exports = (roll = "1d6") => {
-	try {
-		roll = tightenSyntax(roll);
+	roll = tightenSyntax(roll);
 
-		let { dice, explode, modifiers = [] } = extractRollElements(roll);
+	let faces = [];
+	let value = 0;
 
-		// Handle dice
-		const faces = getFaces(dice.split("d")[0], dice.split("d")[1], explode);
+	//split the roll into an array
+	const rollArray = convertRollStringToArray(roll);
 
-		// Handle modifiers
-		modifiers = splitModifiers(modifiers);
+	function resovleRollArray(array, operator = "+") {
+		if (array.length === 0) return;
 
-		// Compute and return
-		const value = getValue(faces, modifiers);
+		let e = array[0];
+		// is it a number?
+		if (/^\d+$/.test(e)) {
+			value += (operator === "+") ? Number(e) : -Number(e);
+		}
+		// is it a dice roll, possibly exploding?
+		if (/^\d*d\d*!*$/.test(e)) {
+			const exploding = e.endsWith("!");
+			e = e.replace("!", "");
+			const f = getFaces(e.split("d")[0], e.split("d")[1], exploding);
+			value += (operator === "+") ? sumArray(f) : -sumArray(f);
+			faces = faces.concat(f);
+		}
+		// is it an operator?
+		if (/(\+|-)/.test(e)) {
+			operator = e;
+		}
+		// uses 'explode' keyword instead of `!`?
+		// if (e.startsWith("explode")) {
+		// 	array.shift();
+		// 	array.unshift(e.replace("explode", "") + "!");
+		// 	return resovleRollArray(array, operator);
+		// }
 
-		return { roll, faces, value };
-	} catch (error) {
-		return;
+		return resovleRollArray(array.slice(1), operator);
 	}
-};
+
+	resovleRollArray(rollArray);
+
+	return { roll, faces, value }
+}
 
 function tightenSyntax(roll) {
 	roll = roll.toLowerCase();
 	roll = roll.replace(/\s/g, "");
-	roll = roll.replace("explode", "explode ");
 	roll = roll.replace("%", "100");
+	roll = replaceExplode(roll);
 
 	if (roll.match(/^d[0-9]+$/)) roll = `1${roll}`;
 	if (roll.match(/^[0-9]+$/)) roll = `1d${roll}`;
 
-	if (
-		roll.match(/^[0-9]+d[0-9]+((\+|\-)[0-9]+)+$/) ||
-		roll.match(/^[0-9]+d[0-9]+$/)
-	) {
-		return roll;
-	} else if (roll.match(/^explode [0-9]+d[0-9]+/)) return roll;
-
-	return;
+	return roll;
 }
 
-function extractRollElements(roll) {
-	let explode = false;
-	if (roll.startsWith("explode ")) {
-		roll = roll.split("explode ")[1];
-		explode = true;
-	}
+function convertRollStringToArray(roll) {
+	return roll.split(/(\+|-)/);
+}
 
-	const i = roll.search(/\+|\-/);
-	if (i > 0) {
-		return {
-			dice: roll.substring(0, i),
-			explode,
-			modifiers: roll.substring(i)
-		};
-	} else {
-		return { dice: roll, explode };
-	}
+function sumArray(array) {
+	return array.reduce((a, b) => a + b, 0);
 }
 
 function getFaces(numOfDice, numOfSides, explode) {
@@ -71,28 +76,17 @@ function getFaces(numOfDice, numOfSides, explode) {
 	return faces;
 }
 
-function splitModifiers(modifiers) {
-	const modifiersArray = [];
+function replaceExplode(roll) {
+	while (roll.includes("explode")) {
+		// remove explode and isolate the roll segment which contained it
+		roll = roll.split("explode");
 
-	function extractModifiers(modStr) {
-		for (let i = 1; i < modStr.length; i++) {
-			if (modStr[i] === "+" || modStr[i] === "-") {
-				modifiersArray.push(modStr.substring(0, i));
-				return extractModifiers(modStr.substring(i));
-			}
-		}
-		modifiersArray.push(modStr);
-		return;
+		// find the first operator, the only thing which divides expressions with a roll string
+		const bangIndex = roll[1].match(/(\+|-)/) ? roll[1].match(/(\+|-)/).index : roll[1].length;
+
+		// stich it back together with a '!' inserted before the first available operator after the first explode
+		roll = roll[0] + roll[1].substring(0, bangIndex) + "!" + roll[1].substring(bangIndex);
 	}
 
-	extractModifiers(modifiers);
-
-	return modifiersArray;
-}
-
-function getValue(faces, modifiers) {
-	let value = 0;
-	faces.forEach((face) => (value += face));
-	modifiers.forEach((modifier) => (value += Number(modifier)));
-	return value;
+	return roll;
 }
