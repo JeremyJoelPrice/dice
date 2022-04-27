@@ -17,5 +17,5 @@ Exploding dice are described with a `!` following the dice, as in `1d6!`. This m
 All whitespace is ignored.
 If you are only rolling 1 die, you can leave off the 1, so `d6` is equivalent to `1d6`.
 If you are rolling 6 sided dice, you likewise can omit the last number; `2d` is equivalent to `2d6`.
-`1d%` it equivalent to `1d100`, though `%` alone is not equivalent to the number `100`.
+`%` it equivalent to `1d100`.
 Exploding dice can be prefixed with the word `exploding`, which is case-insensitive. So `exploding 1d6` is equivalent to `1d6!`.

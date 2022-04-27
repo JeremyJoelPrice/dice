@@ -5,6 +5,13 @@ beforeEach(() => jest.spyOn(Math, "random").mockReturnValue(0.49999));
 afterEach(() => jest.spyOn(Math, "random").mockRestore());
 
 describe("Basic functionality", () => {
+	test("roll() returns an object with the correct properties", () => {
+		expect(roll()).toMatchObject({
+			roll: expect.any(String),
+			faces: expect.any(Array),
+			value: expect.any(Number)
+		});
+	})
 	describe("roll() relies on Math.random() for fair and even probabilities", () => {
 		test("parses Math.random() results correctly, given a 4-sided dice", () => {
 			jest.spyOn(Math, "random").mockReturnValue(0.000001);
@@ -93,17 +100,113 @@ describe("Basic functionality", () => {
 			});
 		});
 	});
+	describe("mixing multiple types of dice together", () => {
+		test("3d6+1d20", () => {
+			expect(roll("3d6+1d20")).toMatchObject({
+				roll: "3d6+1d20",
+				faces: [3, 3, 3, 10],
+				value: 19
+			});
+		});
+		test("3d6+5-1d20", () => {
+			expect(roll("3d6+5-1d20")).toMatchObject({
+				roll: "3d6+5-1d20",
+				faces: [3, 3, 3, 10],
+				value: 4
+			});
+		});
+	});
 });
 
 describe("Advanced functionality", () => {
 	describe("roll() exploding dice", () => {
-		
+		test("1d4!", () => {
+			const results = [0.5, 0.9, 0.5, 0.5];
+			let index = 0;
+			jest.spyOn(Math, "random").mockImplementation(() => results[index++]);
+			expect(roll("1d4!")).toMatchObject({
+				roll: "1d4!",
+				faces: [3],
+				value: 3
+			});
+			expect(roll("1d4!")).toMatchObject({
+				roll: "1d4!",
+				faces: [4, 3],
+				value: 7
+			});
+			expect(roll("1d4!")).toMatchObject({
+				roll: "1d4!",
+				faces: [3],
+				value: 3
+			});
+		});
+		test("1d6!", () => {
+			const results = [0.49, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.82, 0.9, 0.01];
+			let index = 0;
+			jest.spyOn(Math, "random").mockImplementation(() => results[index++]);
+			expect(roll("1d6!")).toMatchObject({
+				roll: "1d6!",
+				faces: [3],
+				value: 3
+			});
+			expect(roll("1d6!")).toMatchObject({
+				roll: "1d6!",
+				faces: [6, 6, 6, 6, 6, 6, 5],
+				value: 41
+			});
+			expect(roll("1d6!")).toMatchObject({
+				roll: "1d6!",
+				faces: [6, 1],
+				value: 7
+			});
+		});
+		test("2d8!", () => {
+			const results = [0.02, 0.6, 0.9, 0.01, 0.01, 0.8, 0.9, 0.9, 0.01];
+			let index = 0;
+			jest.spyOn(Math, "random").mockImplementation(() => results[index++]);
+			expect(roll("2d8!")).toMatchObject({
+				roll: "2d8!",
+				faces: [1, 5],
+				value: 6
+			});
+			expect(roll("2d8!")).toMatchObject({
+				roll: "2d8!",
+				faces: [8, 1, 1],
+				value: 10
+			});
+			expect(roll("2d8!")).toMatchObject({
+				roll: "2d8!",
+				faces: [7, 8, 8, 1],
+				value: 24
+			});
+		});
 	});
 	// drop/keep highest/lost N
 	// mix different types of dice together
+	// remember a roll for later
+	// reroll the previous roll
 });
 
 describe("flexible syntax", () => {
+	test("ignores whitespace", () => {
+		expect(roll(" 1 d 6 ")).toMatchObject({
+			roll: "1d6",
+			faces: [3],
+			value: 3
+		});
+		expect(roll(" % ")).toMatchObject({
+			roll: "1d100",
+			faces: [50],
+			value: 50
+		});
+	});
+	test("case insensitive", () => {
+		expect(roll("1D6")).toMatchObject({
+			roll: "1d6",
+			faces: [3],
+			value: 3
+		});
+	});
 	test("roll() defaults to rolling '1d6'", () => {
 		expect(roll()).toMatchObject({
 			roll: "1d6",
@@ -142,115 +245,27 @@ describe("flexible syntax", () => {
 			value: 500
 		});
 	});
-	test("roll() ignores whitespace", () => {
-		expect(roll(" 1 d 6 ")).toMatchObject({
-			roll: "1d6",
-			faces: [3],
-			value: 3
-		});
-		expect(roll(" % ")).toMatchObject({
-			roll: "1d100",
-			faces: [50],
-			value: 50
-		});
-	});
-	describe("Accepts `explode` keyword, and explodes on a maximum value roll", () => {
-		test("1d4 explodes", () => {
+	describe("Accepts `explode` keyword instead of `!`", () => {
+		test("explode 1d4", () => {
 			const results = [0.5, 0.9, 0.5, 0.5];
 			let index = 0;
 			jest.spyOn(Math, "random").mockImplementation(() => results[index++]);
 			expect(roll("explode 1d4")).toMatchObject({
-				roll: "explode 1d4",
+				roll: "1d4!",
 				faces: [3],
 				value: 3
 			});
-			expect(roll("explode 1d4")).toMatchObject({
-				roll: "explode 1d4",
+			expect(roll("explode 1d4 + 5")).toMatchObject({
+				roll: "1d4!+5",
 				faces: [4, 3],
-				value: 7
+				value: 12
 			});
-			expect(roll("explode 1d4")).toMatchObject({
-				roll: "explode 1d4",
+			expect(roll("5 + explode 1d4")).toMatchObject({
+				roll: "5+1d4!",
 				faces: [3],
-				value: 3
-			});
-		});
-		test("1d6 explodes", () => {
-			const results = [0.49, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.82, 0.9, 0.01];
-			let index = 0;
-			jest.spyOn(Math, "random").mockImplementation(() => results[index++]);
-			expect(roll("explode 1d6")).toMatchObject({
-				roll: "explode 1d6",
-				faces: [3],
-				value: 3
-			});
-			expect(roll("explode 1d6")).toMatchObject({
-				roll: "explode 1d6",
-				faces: [6, 6, 6, 6, 6, 6, 5],
-				value: 41
-			});
-			expect(roll("explode 1d6")).toMatchObject({
-				roll: "explode 1d6",
-				faces: [6, 1],
-				value: 7
-			});
-		});
-		test("2d8 explodes", () => {
-			const results = [0.02, 0.6, 0.9, 0.01, 0.01, 0.8, 0.9, 0.9, 0.01];
-			let index = 0;
-			jest.spyOn(Math, "random").mockImplementation(() => results[index++]);
-			expect(roll("explode 2d8")).toMatchObject({
-				roll: "explode 2d8",
-				faces: [1, 5],
-				value: 6
-			});
-			expect(roll("explode 2d8")).toMatchObject({
-				roll: "explode 2d8",
-				faces: [8, 1, 1],
-				value: 10
-			});
-			expect(roll("explode 2d8")).toMatchObject({
-				roll: "explode 2d8",
-				faces: [7, 8, 8, 1],
-				value: 24
+				value: 8
 			});
 		});
 	});
 });
 
-describe("Utility functionality", () => {
-	// invalid input
-	describe("util functions", () => {
-		describe("extractRegexFromString", () => {
-			it("removes the pattern from the string, returning both", () => {
-				const string = "applesbananasapples";
-				const { matches, string: newString } = extractRegexFromString(
-					/bananas/,
-					string
-				);
-				expect(matches).toEqual(["bananas"]);
-				expect(newString).toBe("applesapples");
-			});
-			it("removes only the first instance of the pattern from the string, returning both", () => {
-				const string = "applesbananasapples";
-				const { matches, string: newString } = extractRegexFromString(
-					/apples/,
-					string
-				);
-				expect(matches).toEqual(["apples"]);
-				expect(newString).toBe("bananasapples");
-			});
-			it("returns entire string if no match is found", () => {
-				const string = "applesbananas";
-				const { matches, string: newString } = extractRegexFromString(
-					/cheese/,
-					string
-				);
-				expect(matches).toEqual([]);
-				expect(newString).toBe(string);
-			});
-		});
-	});
-	// remember a roll for later
-	// reroll the previous roll
-});
