@@ -1,4 +1,4 @@
-module.exports = function roll(roll = "1d6") {
+module.exports = (roll = "1d6") => {
 	try {
 		roll = tightenSyntax(roll);
 
@@ -11,9 +11,9 @@ module.exports = function roll(roll = "1d6") {
 		modifiers = splitModifiers(modifiers);
 
 		// Compute and return
-		const total = getTotal(faces, modifiers);
+		const value = getValue(faces, modifiers);
 
-		return { roll, faces, total };
+		return { roll, faces, value };
 	} catch (error) {
 		return;
 	}
@@ -90,9 +90,9 @@ function splitModifiers(modifiers) {
 	return modifiersArray;
 }
 
-function getTotal(faces, modifiers) {
-	let total = 0;
-	faces.forEach((face) => (total += face));
-	modifiers.forEach((modifier) => (total += Number(modifier)));
-	return total;
+function getValue(faces, modifiers) {
+	let value = 0;
+	faces.forEach((face) => (value += face));
+	modifiers.forEach((modifier) => (value += Number(modifier)));
+	return value;
 }
