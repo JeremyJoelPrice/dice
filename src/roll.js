@@ -4,8 +4,7 @@ module.exports = (roll = "1d6") => {
 	let faces = [];
 	let value = 0;
 
-	//split the roll into an array
-	const rollArray = convertRollStringToArray(roll);
+	const rollArray = roll.split(/(\+|-)/);
 
 	function resovleRollArray(array, operator = "+") {
 		if (array.length === 0) return;
@@ -27,12 +26,6 @@ module.exports = (roll = "1d6") => {
 		if (/(\+|-)/.test(e)) {
 			operator = e;
 		}
-		// uses 'explode' keyword instead of `!`?
-		// if (e.startsWith("explode")) {
-		// 	array.shift();
-		// 	array.unshift(e.replace("explode", "") + "!");
-		// 	return resovleRollArray(array, operator);
-		// }
 
 		return resovleRollArray(array.slice(1), operator);
 	}
@@ -54,12 +47,19 @@ function tightenSyntax(roll) {
 	return roll;
 }
 
-function convertRollStringToArray(roll) {
-	return roll.split(/(\+|-)/);
-}
+function replaceExplode(roll) {
+	while (roll.includes("explode")) {
+		// remove explode and isolate the roll segment which contained it
+		roll = roll.split("explode");
 
-function sumArray(array) {
-	return array.reduce((a, b) => a + b, 0);
+		// find the first operator, the only thing which divides expressions with a roll string
+		const bangIndex = roll[1].match(/(\+|-)/) ? roll[1].match(/(\+|-)/).index : roll[1].length;
+
+		// stich it back together with a '!' inserted before the first available operator after the first explode
+		roll = roll[0] + roll[1].substring(0, bangIndex) + "!" + roll[1].substring(bangIndex);
+	}
+
+	return roll;
 }
 
 function getFaces(numOfDice, numOfSides, explode) {
@@ -76,17 +76,11 @@ function getFaces(numOfDice, numOfSides, explode) {
 	return faces;
 }
 
-function replaceExplode(roll) {
-	while (roll.includes("explode")) {
-		// remove explode and isolate the roll segment which contained it
-		roll = roll.split("explode");
-
-		// find the first operator, the only thing which divides expressions with a roll string
-		const bangIndex = roll[1].match(/(\+|-)/) ? roll[1].match(/(\+|-)/).index : roll[1].length;
-
-		// stich it back together with a '!' inserted before the first available operator after the first explode
-		roll = roll[0] + roll[1].substring(0, bangIndex) + "!" + roll[1].substring(bangIndex);
-	}
-
-	return roll;
+function sumArray(array) {
+	return array.reduce((a, b) => a + b, 0);
 }
+
+
+
+
+
