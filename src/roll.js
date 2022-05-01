@@ -6,10 +6,11 @@ module.exports = (roll = "1d6") => {
 
 	const rollArray = roll.split(/(\+|-)/);
 
-	function resovleRollArray(array, operator = "+") {
-		if (array.length === 0) return;
+	let operator = "+";
+	for (let i = 0; i < rollArray.length; i++) {
 
-		let e = array[0];
+		let e = rollArray[i];
+
 		// is it a number?
 		if (/^\d+$/.test(e)) {
 			value += (operator === "+") ? Number(e) : -Number(e);
@@ -25,12 +26,10 @@ module.exports = (roll = "1d6") => {
 		// is it an operator?
 		if (/(\+|-)/.test(e)) {
 			operator = e;
+		} else {
+			operator = "+";
 		}
-
-		return resovleRollArray(array.slice(1), operator);
 	}
-
-	resovleRollArray(rollArray);
 
 	return { roll, faces, value }
 }

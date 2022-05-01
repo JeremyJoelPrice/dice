@@ -1,5 +1,4 @@
 const roll = require("../src/roll");
-const extractRegexFromString = require("../src/regextractor");
 
 beforeEach(() => jest.spyOn(Math, "random").mockReturnValue(0.49999));
 afterEach(() => jest.spyOn(Math, "random").mockRestore());
@@ -181,10 +180,20 @@ describe("Advanced functionality", () => {
 			});
 		});
 	});
-	// drop/keep highest/lost N
-	// mix different types of dice together
+	describe.skip("keep highest N results", () => {
+		beforeEach(() => jest.spyOn(Math, "random").mockReturnValueOnce(0.99).mockReturnValueOnce(0.49).mockReturnValue(0.01));
+		test("2d6h1", () => {
+			expect(roll("2d6h1")).toMatchObject({
+				roll: "2d6h1",
+				faces: [6],
+				value: 6
+			});
+		});
+	});
+	// describe("keep lowest N results");
 	// remember a roll for later
 	// reroll the previous roll
+	// Fudge dice
 });
 
 describe("flexible syntax", () => {
