@@ -17,7 +17,7 @@ module.exports = (roll = "1d6") => {
 			value += (operator === "+") ? Number(e) : -Number(e);
 		}
 		// is it a dice roll, possibly exploding?
-		if (/^\d*d\d*!*(h\d*)*$/.test(e)) {
+		if (/^\d*d\d*!*((h|l)\d*)*$/.test(e)) {
 			const f = getFaces(e);
 			value += (operator === "+") ? sumArray(f) : -sumArray(f);
 			faces = faces.concat(f);
@@ -54,25 +54,13 @@ function tightenSyntax(roll) {
 	return roll;
 }
 
-function getFaces(e) {
-	let explode;
-	let highest;
+function getFaces(roll) {
+	const { dice, explode, highest } = extractFlags(roll);
 
-	// exploding
-	if (e.includes("!")) {
-		explode = e.includes("!");
-		e = e.replace("!", "");
-	}
-
-	// highest
-	if (e.includes("h")) {
-		highest = Number(e.match(/h\d*/)[0].substring(1));
-		e = e.substring(0, e.indexOf("h"));
-	}
-
-	const [numOfDice, numOfSides] = e.split("d");
+	const [numOfDice, numOfSides] = dice.split("d");
 	let faces = [];
 
+	// rolling & exploding
 	for (let i = 0; i < numOfDice; i++) {
 		let result;
 		do {
@@ -81,6 +69,7 @@ function getFaces(e) {
 		} while (explode && result == numOfSides);
 	}
 
+	// keep highest
 	if (highest !== undefined) {
 		const drop = faces.length - highest;
 		if (drop >= faces.length) {
@@ -89,4 +78,35 @@ function getFaces(e) {
 		else if (drop < faces.length && drop > 0) faces = dropLowestNInArray(faces, drop);
 	}
 	return faces;
+}
+
+function extractFlags(roll) {
+	// extracts flags like `!` for explode, and `h2` for keep highest 2
+
+	let explode;
+	let highest;
+
+	let v = extractFlag(roll, "!");
+	roll = v.roll;
+	explode = v.flag;
+
+	v = extractFlag(roll, /h\d*/);
+	roll = v.roll;
+	highest = v.flag ? v.flag.substring(1) : undefined;
+
+	return { dice: roll, explode, highest };
+}
+
+function extractFlag(roll, flag) {
+	// extracts the given flag, and returns the roll and the flag, if found.
+	// If no flag found, returns the original roll and the flag property is undefined.
+
+	const match = roll.match(flag);
+	if (match) {
+		flag = match[0];
+		roll = roll.replace(match[0], "");
+	}
+	else { flag = undefined; }
+
+	return { roll, flag }
 }
