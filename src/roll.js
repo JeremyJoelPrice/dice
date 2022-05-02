@@ -1,3 +1,5 @@
+const { dropLowestNInArray, sumArray } = require("./utils");
+
 module.exports = (roll = "1d6") => {
 	roll = tightenSyntax(roll);
 
@@ -10,13 +12,12 @@ module.exports = (roll = "1d6") => {
 	for (let i = 0; i < rollArray.length; i++) {
 
 		let e = rollArray[i];
-
 		// is it a number?
 		if (/^\d+$/.test(e)) {
 			value += (operator === "+") ? Number(e) : -Number(e);
 		}
 		// is it a dice roll, possibly exploding?
-		if (/^\d*d\d*!*$/.test(e)) {
+		if (/^\d*d\d*!*(h\d*)*$/.test(e)) {
 			const f = getFaces(e);
 			value += (operator === "+") ? sumArray(f) : -sumArray(f);
 			faces = faces.concat(f);
@@ -54,10 +55,23 @@ function tightenSyntax(roll) {
 }
 
 function getFaces(e) {
-	const explode = e.endsWith("!");
-	e = e.replace("!", "");
+	let explode;
+	let highest;
+
+	// exploding
+	if (e.includes("!")) {
+		explode = e.includes("!");
+		e = e.replace("!", "");
+	}
+
+	// highest
+	if (e.includes("h")) {
+		highest = Number(e.match(/h\d*/)[0].substring(1));
+		e = e.substring(0, e.indexOf("h"));
+	}
+
 	const [numOfDice, numOfSides] = e.split("d");
-	const faces = [];
+	let faces = [];
 
 	for (let i = 0; i < numOfDice; i++) {
 		let result;
@@ -67,9 +81,12 @@ function getFaces(e) {
 		} while (explode && result == numOfSides);
 	}
 
+	if (highest !== undefined) {
+		const drop = faces.length - highest;
+		if (drop >= faces.length) {
+			faces = [];
+		}
+		else if (drop < faces.length && drop > 0) faces = dropLowestNInArray(faces, drop);
+	}
 	return faces;
-}
-
-function sumArray(array) {
-	return array.reduce((a, b) => a + b, 0);
 }

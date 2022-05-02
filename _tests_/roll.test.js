@@ -180,13 +180,41 @@ describe("Advanced functionality", () => {
 			});
 		});
 	});
-	describe.skip("keep highest N results", () => {
+	describe("keep highest N results", () => {
 		beforeEach(() => jest.spyOn(Math, "random").mockReturnValueOnce(0.99).mockReturnValueOnce(0.49).mockReturnValue(0.01));
 		test("2d6h1", () => {
 			expect(roll("2d6h1")).toMatchObject({
 				roll: "2d6h1",
 				faces: [6],
 				value: 6
+			});
+		});
+		test("3d6h2", () => {
+			expect(roll("3d6h2")).toMatchObject({
+				roll: "3d6h2",
+				faces: [6, 3],
+				value: 9
+			});
+		});
+		test("2d6h0", () => {
+			expect(roll("2d6h0")).toMatchObject({
+				roll: "2d6h0",
+				faces: [],
+				value: 0
+			});
+		});
+		test("2d6h2", () => {
+			expect(roll("2d6h2")).toMatchObject({
+				roll: "2d6h2",
+				faces: [6, 3],
+				value: 9
+			});
+		});
+		test("2d6h12", () => {
+			expect(roll("2d6h12")).toMatchObject({
+				roll: "2d6h12",
+				faces: [6, 3],
+				value: 9
 			});
 		});
 	});
@@ -276,5 +304,6 @@ describe("flexible syntax", () => {
 			});
 		});
 	});
+	// 2d6h3 === h3 of 2d6
+	// `h` and `highest` are interchangeable
 });
-
