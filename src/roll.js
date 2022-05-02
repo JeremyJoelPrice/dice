@@ -17,9 +17,7 @@ module.exports = (roll = "1d6") => {
 		}
 		// is it a dice roll, possibly exploding?
 		if (/^\d*d\d*!*$/.test(e)) {
-			const exploding = e.endsWith("!");
-			e = e.replace("!", "");
-			const f = getFaces(e.split("d")[0], e.split("d")[1], exploding);
+			const f = getFaces(e);
 			value += (operator === "+") ? sumArray(f) : -sumArray(f);
 			faces = faces.concat(f);
 		}
@@ -38,15 +36,6 @@ function tightenSyntax(roll) {
 	roll = roll.toLowerCase();
 	roll = roll.replace(/\s/g, "");
 	roll = roll.replace("%", "100");
-	roll = replaceExplode(roll);
-
-	if (roll.match(/^d[0-9]+$/)) roll = `1${roll}`;
-	if (roll.match(/^[0-9]+$/)) roll = `1d${roll}`;
-
-	return roll;
-}
-
-function replaceExplode(roll) {
 	while (roll.includes("explode")) {
 		// remove explode and isolate the roll segment which contained it
 		roll = roll.split("explode");
@@ -58,10 +47,16 @@ function replaceExplode(roll) {
 		roll = roll[0] + roll[1].substring(0, bangIndex) + "!" + roll[1].substring(bangIndex);
 	}
 
+	if (roll.match(/^d[0-9]+$/)) roll = `1${roll}`;
+	if (roll.match(/^[0-9]+$/)) roll = `1d${roll}`;
+
 	return roll;
 }
 
-function getFaces(numOfDice, numOfSides, explode) {
+function getFaces(e) {
+	const explode = e.endsWith("!");
+	e = e.replace("!", "");
+	const [numOfDice, numOfSides] = e.split("d");
 	const faces = [];
 
 	for (let i = 0; i < numOfDice; i++) {
@@ -78,8 +73,3 @@ function getFaces(numOfDice, numOfSides, explode) {
 function sumArray(array) {
 	return array.reduce((a, b) => a + b, 0);
 }
-
-
-
-
-
