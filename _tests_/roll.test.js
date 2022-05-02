@@ -180,45 +180,97 @@ describe("Advanced functionality", () => {
 			});
 		});
 	});
-	describe("keep highest N results", () => {
+	describe("keep highest / lowest N", () => {
 		beforeEach(() => jest.spyOn(Math, "random").mockReturnValueOnce(0.99).mockReturnValueOnce(0.49).mockReturnValue(0.01));
-		test("2d6h1", () => {
-			expect(roll("2d6h1")).toMatchObject({
-				roll: "2d6h1",
-				faces: [6],
-				value: 6
+		describe("keep highest N results", () => {
+			test("keep highest 1", () => {
+				expect(roll("2d6h1")).toMatchObject({
+					roll: "2d6h1",
+					faces: [6],
+					value: 6
+				});
+			});
+			test("keep highest 2", () => {
+				expect(roll("3d6h2")).toMatchObject({
+					roll: "3d6h2",
+					faces: [6, 3],
+					value: 9
+				});
+			});
+			test("keep highest 2", () => {
+				expect(roll("4d6h2")).toMatchObject({
+					roll: "4d6h2",
+					faces: [6, 3],
+					value: 9
+				});
+			});
+			test("keep highest 0", () => {
+				expect(roll("2d6h0")).toMatchObject({
+					roll: "2d6h0",
+					faces: [],
+					value: 0
+				});
+			});
+			test("keep all dice", () => {
+				expect(roll("2d6h2")).toMatchObject({
+					roll: "2d6h2",
+					faces: [6, 3],
+					value: 9
+				});
+			});
+			test("keep more than all dice", () => {
+				expect(roll("2d6h12")).toMatchObject({
+					roll: "2d6h12",
+					faces: [6, 3],
+					value: 9
+				});
 			});
 		});
-		test("3d6h2", () => {
-			expect(roll("3d6h2")).toMatchObject({
-				roll: "3d6h2",
-				faces: [6, 3],
-				value: 9
+		describe("keep lowest N results", () => {
+			test("keep lowest 1", () => {
+				expect(roll("2d6l1")).toMatchObject({
+					roll: "2d6l1",
+					faces: [3],
+					value: 3
+				});
+			});
+			test("keep lowest 2", () => {
+				expect(roll("3d6l2")).toMatchObject({
+					roll: "3d6l2",
+					faces: [3, 1],
+					value: 4
+				});
+			});
+			test("keep lowest 2", () => {
+				expect(roll("4d6l2")).toMatchObject({
+					roll: "4d6l2",
+					faces: [1, 1],
+					value: 2
+				});
+			});
+			test("keep lowest 0", () => {
+				expect(roll("2d6l0")).toMatchObject({
+					roll: "2d6l0",
+					faces: [],
+					value: 0
+				});
+			});
+			test("keep all dice", () => {
+				expect(roll("2d6l2")).toMatchObject({
+					roll: "2d6l2",
+					faces: [6, 3],
+					value: 9
+				});
+			});
+			test("keep more than all dice", () => {
+				expect(roll("2d6l12")).toMatchObject({
+					roll: "2d6l12",
+					faces: [6, 3],
+					value: 9
+				});
 			});
 		});
-		test("2d6h0", () => {
-			expect(roll("2d6h0")).toMatchObject({
-				roll: "2d6h0",
-				faces: [],
-				value: 0
-			});
-		});
-		test("2d6h2", () => {
-			expect(roll("2d6h2")).toMatchObject({
-				roll: "2d6h2",
-				faces: [6, 3],
-				value: 9
-			});
-		});
-		test("2d6h12", () => {
-			expect(roll("2d6h12")).toMatchObject({
-				roll: "2d6h12",
-				faces: [6, 3],
-				value: 9
-			});
-		});
-	});
-	// describe("keep lowest N results");
+	})
 	// remember a roll for later
 	// reroll the previous roll
 	// Fudge dice

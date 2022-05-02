@@ -1,4 +1,4 @@
-const { dropLowestNInArray, sumArray } = require("./utils");
+const { dropHighestNInArray, dropLowestNInArray, sumArray } = require("./utils");
 
 module.exports = (roll = "1d6") => {
 	roll = tightenSyntax(roll);
@@ -55,7 +55,7 @@ function tightenSyntax(roll) {
 }
 
 function getFaces(roll) {
-	const { dice, explode, highest } = extractFlags(roll);
+	const { dice, explode, highest, lowest } = extractFlags(roll);
 
 	const [numOfDice, numOfSides] = dice.split("d");
 	let faces = [];
@@ -77,24 +77,45 @@ function getFaces(roll) {
 		}
 		else if (drop < faces.length && drop > 0) faces = dropLowestNInArray(faces, drop);
 	}
+
+	// keep lowest
+	if (lowest !== undefined) {
+		const drop = faces.length - lowest;
+		if (drop >= faces.length) {
+			faces = [];
+		}
+		else if (drop < faces.length && drop > 0) faces = dropHighestNInArray(faces, drop);
+	}
+
 	return faces;
 }
 
 function extractFlags(roll) {
 	// extracts flags like `!` for explode, and `h2` for keep highest 2
-
 	let explode;
 	let highest;
+	let lowest;
 
-	let v = extractFlag(roll, "!");
-	roll = v.roll;
-	explode = v.flag;
+	let v;
+	v = extractFlag(roll, "!");
+	if (v.flag) {
+		roll = v.roll;
+		explode = v.flag;
+	}
 
 	v = extractFlag(roll, /h\d*/);
-	roll = v.roll;
-	highest = v.flag ? v.flag.substring(1) : undefined;
+	if (v.flag) {
+		roll = v.roll;
+		highest = v.flag.substring(1);
+	}
 
-	return { dice: roll, explode, highest };
+	v = extractFlag(roll, /l\d*/);
+	if (v.flag) {
+		roll = v.roll;
+		lowest = Number(v.flag.substring(1));
+	}
+
+	return { dice: roll, explode, highest, lowest };
 }
 
 function extractFlag(roll, flag) {
