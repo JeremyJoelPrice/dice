@@ -1,19 +1,16 @@
 const { dropHighestNInArray, dropLowestNInArray, sumArray } = require("./utils");
 
 module.exports = (roll = "1d6") => {
-	// Amend syntax
-	roll = tightenSyntax(roll);
+	const rollString = forgiveRollStringSyntax(roll);
 
-	// Split roll string into array of expressions
-	const rollArray = roll.split(/(\+|-)/);
+	const rollElements = rollString.split(/(\+|-)/);
 
-	
-	// Parse each expression
+
 	let faces = [];
 	let value = 0;
 	let operator = "+";
-	for (let i = 0; i < rollArray.length; i++) {
-		const e = rollArray[i];
+	for (let i = 0; i < rollElements.length; i++) {
+		let e = rollElements[i];
 
 		// is a number
 		if (/^\d+$/.test(e)) {
@@ -21,7 +18,8 @@ module.exports = (roll = "1d6") => {
 		}
 		// is a dice roll
 		if (e.includes("d")) {
-			const f = getFaces(e);
+			e = forgiveDiceElementSyntax(e);
+			const f = executeDiceElement(e);
 			value += (operator === "+") ? sumArray(f) : -sumArray(f);
 			faces = faces.concat(f);
 		}
@@ -32,31 +30,36 @@ module.exports = (roll = "1d6") => {
 	return { roll, faces, value }
 }
 
-function tightenSyntax(roll) {
-	roll = roll.toLowerCase();
-	roll = roll.replace(/\s/g, "");
-	roll = roll.replace("%", "100");
-	if (roll.match(/^d[0-9]+$/)) roll = `1${roll}`;
-	if (roll.match(/^[0-9]+$/)) roll = `1d${roll}`;
+function forgiveRollStringSyntax(rollString) {
+	rollString = rollString.toLowerCase();
+	rollString = rollString.replace("f", "F");
+	rollString = rollString.replace(/\s/g, "");
+	rollString = rollString.replace("%", "100");
 
-
-	while (roll.includes("explode")) {
+	while (rollString.includes("explode")) {
 		// remove explode and isolate the roll segment which contained it
-		roll = roll.split("explode");
+		rollString = rollString.split("explode");
 
-		// find the first operator, the only thing which divides expressions with a roll string
-		const bangIndex = roll[1].match(/(\+|-)/) ? roll[1].match(/(\+|-)/).index : roll[1].length;
+		// find the first operator, the only thing which divides expressions within a roll string
+		const bangIndex = rollString[1].match(/(\+|-)/) ? rollString[1].match(/(\+|-)/).index : rollString[1].length;
 
 		// stitch it back together with a '!' inserted before the first available operator after the first explode
-		roll = roll[0] + roll[1].substring(0, bangIndex) + "!" + roll[1].substring(bangIndex);
+		rollString = rollString[0] + rollString[1].substring(0, bangIndex) + "!" + rollString[1].substring(bangIndex);
 	}
 
-	return roll;
+	return rollString;
 }
 
-function getFaces(roll) {
+function forgiveDiceElementSyntax(diceElement) {
+	if (diceElement.match(/^d[0-9]+$/)) diceElement = `1${diceElement}`;
+	if (diceElement.match(/^[0-9]+$/)) diceElement = `1d${diceElement}`;
+
+	return diceElement;
+}
+
+function executeDiceElement(diceElement) {
 	// extract any and all flags from the roll expression
-	const { dice, explode, highest, lowest } = extractFlags(roll);
+	const { dice, explode, highest, lowest } = extractAllFlags(diceElement);
 
 	const [numOfDice, numOfSides] = dice.split("d");
 	let faces = [];
@@ -65,7 +68,7 @@ function getFaces(roll) {
 	for (let i = 0; i < numOfDice; i++) {
 		let result;
 		do {
-			result = Math.floor(Math.random() * numOfSides + 1);
+			result =rollDie(numOfSides);
 			faces.push(result);
 		} while (explode && result == numOfSides);
 	}
@@ -91,7 +94,7 @@ function getFaces(roll) {
 	return faces;
 }
 
-function extractFlags(roll) {
+function extractAllFlags(roll) {
 	// extracts flags like `!` for explode, and `h2` for keep highest 2
 	let explode;
 	let highest;
@@ -131,4 +134,11 @@ function extractGivenFlag(roll, flag) {
 	else { flag = undefined; }
 
 	return { roll, flag }
+}
+
+function rollDie(numOfSides) {
+	if (numOfSides === "F") {
+		return Math.floor(Math.random() * 3 - 1);
+	}
+	return Math.floor(Math.random() * numOfSides + 1);
 }
