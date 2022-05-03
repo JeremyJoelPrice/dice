@@ -271,6 +271,23 @@ describe("Advanced functionality", () => {
 			});
 		});
 	})
+	describe("exploding and keeping highest / lowest N", () => {
+		beforeEach(() => jest.spyOn(Math, "random").mockReturnValueOnce(0.99).mockReturnValueOnce(0.49).mockReturnValue(0.01));
+		test("3d6!h2+12", () => {
+			expect(roll("3d6!h2+12")).toMatchObject({
+				roll: "3d6!h2+12",
+				faces: [6, 3],
+				value: 21
+			});
+		})
+		test("3d6!l2+12", () => {
+			expect(roll("3d6!l2+12")).toMatchObject({
+				roll: "3d6!l2+12",
+				faces: [1, 1],
+				value: 14
+			});
+		})
+	})
 	// remember a roll for later
 	// reroll the previous roll
 	// Fudge dice
