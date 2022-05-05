@@ -12,6 +12,11 @@ module.exports = (roll = "1d6") => {
 	for (let i = 0; i < rollElements.length; i++) {
 		let e = rollElements[i];
 
+		// is %
+		if (e === "%" || e === "d%") e = "1d100";
+		if (/^\d+d%$/.test(e)) e = e.replace("%", "100");
+		// is df
+		if (e === "dF") e = "4dF";
 		// is a number
 		if (/^\d+$/.test(e)) {
 			value += (operator === "+") ? Number(e) : -Number(e);
@@ -34,7 +39,8 @@ function forgiveRollStringSyntax(rollString) {
 	rollString = rollString.toLowerCase();
 	rollString = rollString.replace("f", "F");
 	rollString = rollString.replace(/\s/g, "");
-	rollString = rollString.replace("%", "100");
+	// rollString = rollString.replace("%", "100");
+	if (rollString.match(/^[0-9]+$/)) rollString = `1d${rollString}`;
 
 	while (rollString.includes("explode")) {
 		// remove explode and isolate the roll segment which contained it
@@ -52,8 +58,6 @@ function forgiveRollStringSyntax(rollString) {
 
 function forgiveDiceElementSyntax(diceElement) {
 	if (diceElement.match(/^d[0-9]+$/)) diceElement = `1${diceElement}`;
-	if (diceElement.match(/^[0-9]+$/)) diceElement = `1d${diceElement}`;
-
 	return diceElement;
 }
 
