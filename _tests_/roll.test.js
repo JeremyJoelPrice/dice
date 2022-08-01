@@ -1,5 +1,5 @@
 const roll = require("../src/roll");
-const extractRegexFromString = require("../src/regextractor");
+const { createRollQueries } = require("./utils");
 
 beforeEach(() => jest.spyOn(Math, "random").mockReturnValue(0.49999));
 afterEach(() => jest.spyOn(Math, "random").mockRestore());
@@ -11,45 +11,30 @@ describe("Basic functionality", () => {
 			faces: expect.any(Array),
 			value: expect.any(Number)
 		});
-	})
+	});
 	describe("roll() relies on Math.random() for fair and even probabilities", () => {
-		test("parses Math.random() results correctly, given a 4-sided dice", () => {
-			jest.spyOn(Math, "random").mockReturnValue(0.000001);
-			expect(roll("1d4").value).toBe(1);
-			jest.spyOn(Math, "random").mockReturnValue(0.25);
-			expect(roll("1d4").value).toBe(2);
-			jest.spyOn(Math, "random").mockReturnValue(0.5);
-			expect(roll("1d4").value).toBe(3);
-			jest.spyOn(Math, "random").mockReturnValue(0.75);
-			expect(roll("1d4").value).toBe(4);
-			jest.spyOn(Math, "random").mockReturnValue(0.9999999);
-			expect(roll("1d4").value).toBe(4);
-		});
-		test("parses Math.random() results correctly, given a 6-sided dice", () => {
-			jest.spyOn(Math, "random").mockReturnValue(0.000001);
-			expect(roll("1d6").value).toBe(1);
-			jest.spyOn(Math, "random").mockReturnValue(0.17);
-			expect(roll("1d6").value).toBe(2);
-			jest.spyOn(Math, "random").mockReturnValue(0.34);
-			expect(roll("1d6").value).toBe(3);
-			jest.spyOn(Math, "random").mockReturnValue(0.5);
-			expect(roll("1d6").value).toBe(4);
-			jest.spyOn(Math, "random").mockReturnValue(0.67);
-			expect(roll("1d6").value).toBe(5);
-			jest.spyOn(Math, "random").mockReturnValue(0.84);
-			expect(roll("1d6").value).toBe(6);
-			jest.spyOn(Math, "random").mockReturnValue(0.9999999);
-			expect(roll("1d6").value).toBe(6);
+		test("1d20 distributes results correctly", () => {
+			for (let mockRandom = 0; mockRandom < 1; mockRandom += 0.05) {
+				jest.spyOn(Math, "random").mockImplementation(() => mockRandom);
+				expect(roll("1d20").value).toBe(
+					Math.floor(mockRandom * 20 + 1)
+				);
+			}
 		});
 	});
-	describe("unmodified rolls with a single type of dice", () => {
-		test("total is correct when rolling dice with fewer than 10 sides", () => {
-			expect(roll("2d4").value).toBe(4);
-			expect(roll("2d8").value).toBe(8);
-		});
-		test("total is correct when rolling dice with more than 10 sides", () => {
-			expect(roll("3d10").value).toBe(15);
-			expect(roll("3d100").value).toBe(150);
+	describe("value is correct regardless of number of dice and number of sides", () => {
+		createRollQueries(20, 20).forEach((query) => {
+			const [numOfSides, diceType] = query.split("d");
+			test(`parses Math.random() results correctly, given ${numOfSides}d${diceType}`, () => {
+				for (let mockRandom = 0; mockRandom < 1; mockRandom += 0.05) {
+					jest.spyOn(Math, "random").mockImplementation(
+						() => mockRandom
+					);
+					expect(roll(query).value).toBe(
+						Math.floor(mockRandom * diceType + 1) * numOfSides
+					);
+				}
+			});
 		});
 	});
 	describe("roll() single type of dice with simple addtion/subtraction modifiers", () => {
@@ -123,7 +108,9 @@ describe("Advanced functionality", () => {
 		test("1d4!", () => {
 			const results = [0.5, 0.9, 0.5, 0.5];
 			let index = 0;
-			jest.spyOn(Math, "random").mockImplementation(() => results[index++]);
+			jest.spyOn(Math, "random").mockImplementation(
+				() => results[index++]
+			);
 			expect(roll("1d4!")).toMatchObject({
 				roll: "1d4!",
 				faces: [3],
@@ -141,9 +128,13 @@ describe("Advanced functionality", () => {
 			});
 		});
 		test("1d6!", () => {
-			const results = [0.49, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.82, 0.9, 0.01];
+			const results = [
+				0.49, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.82, 0.9, 0.01
+			];
 			let index = 0;
-			jest.spyOn(Math, "random").mockImplementation(() => results[index++]);
+			jest.spyOn(Math, "random").mockImplementation(
+				() => results[index++]
+			);
 			expect(roll("1d6!")).toMatchObject({
 				roll: "1d6!",
 				faces: [3],
@@ -163,7 +154,9 @@ describe("Advanced functionality", () => {
 		test("2d8!", () => {
 			const results = [0.02, 0.6, 0.9, 0.01, 0.01, 0.8, 0.9, 0.9, 0.01];
 			let index = 0;
-			jest.spyOn(Math, "random").mockImplementation(() => results[index++]);
+			jest.spyOn(Math, "random").mockImplementation(
+				() => results[index++]
+			);
 			expect(roll("2d8!")).toMatchObject({
 				roll: "2d8!",
 				faces: [1, 5],
@@ -249,7 +242,9 @@ describe("flexible syntax", () => {
 		test("explode 1d4", () => {
 			const results = [0.5, 0.9, 0.5, 0.5];
 			let index = 0;
-			jest.spyOn(Math, "random").mockImplementation(() => results[index++]);
+			jest.spyOn(Math, "random").mockImplementation(
+				() => results[index++]
+			);
 			expect(roll("explode 1d4")).toMatchObject({
 				roll: "1d4!",
 				faces: [3],
@@ -268,4 +263,3 @@ describe("flexible syntax", () => {
 		});
 	});
 });
-
