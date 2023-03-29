@@ -174,31 +174,161 @@ describe("Advanced functionality", () => {
 			});
 		});
 	});
-	// drop/keep highest/lost N
-	// mix different types of dice together
+	describe("keep highest / lowest N", () => {
+		beforeEach(() => jest.spyOn(Math, "random").mockReturnValueOnce(0.99).mockReturnValueOnce(0.49).mockReturnValue(0.01));
+		describe("keep highest N results", () => {
+			test("keep highest 1", () => {
+				expect(roll("2d6h1")).toMatchObject({
+					roll: "2d6h1",
+					faces: [6],
+					value: 6
+				});
+			});
+			test("keep highest 2", () => {
+				expect(roll("3d6h2")).toMatchObject({
+					roll: "3d6h2",
+					faces: [6, 3],
+					value: 9
+				});
+			});
+			test("keep highest 2", () => {
+				expect(roll("4d6h2")).toMatchObject({
+					roll: "4d6h2",
+					faces: [6, 3],
+					value: 9
+				});
+			});
+			test("keep highest 0", () => {
+				expect(roll("2d6h0")).toMatchObject({
+					roll: "2d6h0",
+					faces: [],
+					value: 0
+				});
+			});
+			test("keep all dice", () => {
+				expect(roll("2d6h2")).toMatchObject({
+					roll: "2d6h2",
+					faces: [6, 3],
+					value: 9
+				});
+			});
+			test("keep more than all dice", () => {
+				expect(roll("2d6h12")).toMatchObject({
+					roll: "2d6h12",
+					faces: [6, 3],
+					value: 9
+				});
+			});
+		});
+		describe("keep lowest N results", () => {
+			test("keep lowest 1", () => {
+				expect(roll("2d6l1")).toMatchObject({
+					roll: "2d6l1",
+					faces: [3],
+					value: 3
+				});
+			});
+			test("keep lowest 2", () => {
+				expect(roll("3d6l2")).toMatchObject({
+					roll: "3d6l2",
+					faces: [3, 1],
+					value: 4
+				});
+			});
+			test("keep lowest 2", () => {
+				expect(roll("4d6l2")).toMatchObject({
+					roll: "4d6l2",
+					faces: [1, 1],
+					value: 2
+				});
+			});
+			test("keep lowest 0", () => {
+				expect(roll("2d6l0")).toMatchObject({
+					roll: "2d6l0",
+					faces: [],
+					value: 0
+				});
+			});
+			test("keep all dice", () => {
+				expect(roll("2d6l2")).toMatchObject({
+					roll: "2d6l2",
+					faces: [6, 3],
+					value: 9
+				});
+			});
+			test("keep more than all dice", () => {
+				expect(roll("2d6l12")).toMatchObject({
+					roll: "2d6l12",
+					faces: [6, 3],
+					value: 9
+				});
+			});
+		});
+	})
+	describe("exploding and keeping highest / lowest N", () => {
+		beforeEach(() => jest.spyOn(Math, "random").mockReturnValueOnce(0.99).mockReturnValueOnce(0.49).mockReturnValue(0.01));
+		test("3d6!h2+12", () => {
+			expect(roll("3d6!h2+12")).toMatchObject({
+				roll: "3d6!h2+12",
+				faces: [6, 3],
+				value: 21
+			});
+		})
+		test("3d6!l2+12", () => {
+			expect(roll("3d6!l2+12")).toMatchObject({
+				roll: "3d6!l2+12",
+				faces: [1, 1],
+				value: 14
+			});
+		})
+	})
+	describe("fudge / fate dice", () => {
+		beforeEach(() => jest.spyOn(Math, "random").mockReturnValueOnce(0.99).mockReturnValueOnce(0.49).mockReturnValue(0.01));
+		test("recognises dF as a dice type", () => {
+			expect(roll("3dF")).toMatchObject({
+				roll: "3dF",
+				faces: [1, 0, -1],
+				value: 0
+			});
+		});
+		// defaults to 4dF if given just dF
+	})
 	// remember a roll for later
 	// reroll the previous roll
 });
 
 describe("flexible syntax", () => {
-	test("ignores whitespace", () => {
-		expect(roll(" 1 d 6 ")).toMatchObject({
-			roll: "1d6",
-			faces: [3],
-			value: 3
-		});
-		expect(roll(" % ")).toMatchObject({
-			roll: "1d100",
-			faces: [50],
-			value: 50
-		});
+	describe("ignores whitespace", () => {
+		test(" 1 d 6 ", () => {
+			expect(roll(" 1 d 6 ")).toMatchObject({
+				roll: " 1 d 6 ",
+				faces: [3],
+				value: 3
+			});
+		})
+		test(" % ", () => {
+			expect(roll(" % ")).toMatchObject({
+				roll: " % ",
+				faces: [50],
+				value: 50
+			});
+		})
 	});
-	test("case insensitive", () => {
-		expect(roll("1D6")).toMatchObject({
-			roll: "1d6",
-			faces: [3],
-			value: 3
-		});
+	describe("case insensitive", () => {
+		test("1D6", () => {
+			expect(roll("1D6")).toMatchObject({
+				roll: "1D6",
+				faces: [3],
+				value: 3
+			});
+		})
+		test("Df", () => {
+			expect(roll("dF")).toMatchObject({
+				roll: "dF",
+				faces: [0, 0, 0, 0],
+				value: 0
+			});
+		})
 	});
 	test("roll() defaults to rolling '1d6'", () => {
 		expect(roll()).toMatchObject({
@@ -209,36 +339,43 @@ describe("flexible syntax", () => {
 	});
 	test("roll(dn) rolls a single dice with 'n' sides", () => {
 		expect(roll("d8")).toMatchObject({
-			roll: "1d8",
+			roll: "d8",
 			faces: [4],
 			value: 4
 		});
 	});
-	test("passing '%' is identitcal to passing '1d100'", () => {
-		expect(roll("%")).toMatchObject({
-			roll: "1d100",
-			faces: [50],
-			value: 50
+	describe("% as percentile dice", () => {
+		test("passing '%' is identitcal to passing '1d100'", () => {
+			expect(roll("%")).toMatchObject({
+				roll: "%",
+				faces: [50],
+				value: 50
+			});
+			expect(roll("1d6 + %")).toMatchObject({
+				roll: "1d6 + %",
+				faces: [3, 50],
+				value: 53
+			});
 		});
-	});
-	test("passing 'nd%' is identitcal to passing 'nd100'", () => {
-		expect(roll("1d%")).toMatchObject({
-			roll: "1d100",
-			faces: [50],
-			value: 50
+		test("passing 'nd%' is identitcal to passing 'nd100'", () => {
+			expect(roll("1d%")).toMatchObject({
+				roll: "1d%",
+				faces: [50],
+				value: 50
+			});
+			expect(roll("2d%")).toMatchObject({
+				roll: "2d%",
+				faces: [50, 50],
+				value: 100
+			});
+			expect(roll("10d%")).toMatchObject({
+				roll: "10d%",
+				faces: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50],
+				value: 500
+			});
 		});
-		expect(roll("2d%")).toMatchObject({
-			roll: "2d100",
-			faces: [50, 50],
-			value: 100
-		});
-		expect(roll("10d%")).toMatchObject({
-			roll: "10d100",
-			faces: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50],
-			value: 500
-		});
-	});
-	describe("Accepts `explode` keyword instead of `!`", () => {
+	})
+	describe("accepts `explode` keyword instead of `!`", () => {
 		test("explode 1d4", () => {
 			const results = [0.5, 0.9, 0.5, 0.5];
 			let index = 0;
@@ -246,20 +383,30 @@ describe("flexible syntax", () => {
 				() => results[index++]
 			);
 			expect(roll("explode 1d4")).toMatchObject({
-				roll: "1d4!",
+				roll: "explode 1d4",
 				faces: [3],
 				value: 3
 			});
 			expect(roll("explode 1d4 + 5")).toMatchObject({
-				roll: "1d4!+5",
+				roll: "explode 1d4 + 5",
 				faces: [4, 3],
 				value: 12
 			});
 			expect(roll("5 + explode 1d4")).toMatchObject({
-				roll: "5+1d4!",
+				roll: "5 + explode 1d4",
 				faces: [3],
 				value: 8
 			});
 		});
 	});
+	test("roll(dF) defaults to rolling '4dF'", () => {
+		jest.spyOn(Math, "random").mockReturnValueOnce(0.99).mockReturnValueOnce(0.49).mockReturnValue(0.01);
+		expect(roll("dF")).toMatchObject({
+			roll: "dF",
+			faces: [1, 0, -1, -1],
+			value: -1
+		});
+	})
+	// 2d6h3 === h3 of 2d6
+	// `h` and `highest` are interchangeable
 });
